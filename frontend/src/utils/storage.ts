@@ -100,11 +100,20 @@ export function saveAllStoredVitals(vitals: VitalLogEntry[]): void {
 }
 
 export function loadEmergencyContact(): EmergencyContact {
-  return safeRead<EmergencyContact>(KEYS.EMERGENCY, DEFAULT_EMERGENCY_CONTACT);
+  try {
+    window.localStorage.removeItem(KEYS.EMERGENCY);
+  } catch {
+    // Ignore unavailable browser storage
+  }
+  return DEFAULT_EMERGENCY_CONTACT;
 }
 
-export function saveEmergencyContact(contact: EmergencyContact): void {
-  safeWrite(KEYS.EMERGENCY, contact);
+export function saveEmergencyContact(_contact: EmergencyContact): void {
+  try {
+    window.localStorage.removeItem(KEYS.EMERGENCY);
+  } catch {
+    // Ignore unavailable browser storage
+  }
 }
 
 export function loadTheme(): ThemeMode {
