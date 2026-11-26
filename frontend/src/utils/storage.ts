@@ -21,7 +21,19 @@ const KEYS = {
   LANGUAGE: "nanicare_language_v1",
 } as const;
 
+const MEMORY_ONLY_KEYS = new Set<string>([KEYS.VERIFIED_MEDS, KEYS.VITALS]);
+const memoryOnlyValues = new Map<string, unknown>();
+
 function safeRead<T>(key: string, fallback: T): T {
+  if (MEMORY_ONLY_KEYS.has(key)) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // Ignore unavailable browser storage
+    }
+    return (memoryOnlyValues.has(key) ? memoryOnlyValues.get(key) : fallback) as T;
+  }
+
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return fallback;
@@ -32,6 +44,16 @@ function safeRead<T>(key: string, fallback: T): T {
 }
 
 function safeWrite<T>(key: string, value: T): void {
+  if (MEMORY_ONLY_KEYS.has(key)) {
+    memoryOnlyValues.set(key, value);
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // Ignore unavailable browser storage
+    }
+    return;
+  }
+
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
